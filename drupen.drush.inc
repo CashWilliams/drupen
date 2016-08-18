@@ -173,6 +173,7 @@ function routeList() {
           $collections[$handler_name] = new RouteCollection();
         }
         $collections[$handler_name]->add($route_name, $route);
+        break;
       }
     }
   }
