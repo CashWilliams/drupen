@@ -1,0 +1,25 @@
+services:
+  drupen.black.list.handler:
+    class: '\Drupal\drupen\RouteHandler\BlackList'
+    tags:
+      - { name: drupen_route_handler, priority: 500 }
+  drupen.no.param.handler:
+    class: '\Drupal\drupen\RouteHandler\NoParam'
+    arguments: ['@url_generator']
+    tags:
+      - { name: drupen_route_handler, priority: 400 }
+  drupen.views.handler:
+    class: '\Drupal\drupen\RouteHandler\Views'
+    arguments: ['@url_generator']
+    tags:
+      - { name: drupen_route_handler, priority: 300 }
+  drupen.default.handler:
+    class: '\Drupal\drupen\RouteHandler\DefaultHandler'
+    arguments: ['@url_generator', '@service_container']
+    tags:
+      - { name: drupen_route_handler }
+  drupen.entity.param:
+    class: '\Drupal\drupen\ParamHandler\Entity'
+    arguments: ['@entity_type.manager']
+    tags:
+      - { name: drupen_parameter_handler }

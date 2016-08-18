@@ -9,6 +9,8 @@ use Drush\Log\LogLevel;
 use GuzzleHttp\TransferStats;
 use GuzzleHttp\Cookie\CookieJar;
 use GuzzleHttp\Client;
+use Symfony\Component\DependencyInjection\Reference;
+use Symfony\Component\Routing\RouteCollection;
 
 define("DRUPEN_STRING_SEPERATOR", "~~~");
 
@@ -154,10 +156,40 @@ function drush_drupen_session_cookie($username = '', $password = '') {
   );
 }
 
+function routeList() {
+  $route_handlers = [];
+  $collections = [];
+  foreach (\Drupal::getContainer()->findTaggedServiceIds('drupen_route_handler') as $id => $attributes) {
+    $route_handlers[$id] = new Reference($id);
+  }
+  $urls = [];
+
+  /** @var \Symfony\Component\Routing\Route $route */
+  foreach (\Drupal::service('router.route_provider')->getAllRoutes() as $route_name => $route) {
+    /** @var \Drupal\drupen\RouteHandler\RouteHandlerInterface $route_handler */
+    foreach ($route_handlers as $handler_name => $route_handler) {
+      if ($route_handler->applies($route)) {
+        if (empty($collections[$handler_name])) {
+          $collections[$handler_name] = new RouteCollection();
+        }
+        $collections[$handler_name]->add($route_name, $route);
+      }
+    }
+  }
+
+  foreach ($collections as $handler_name => $collection) {
+    $route_handler = $route_handlers[$handler_name];
+    $urls = array_merge($route_handler->getUrls($collection), $urls);
+  }
+
+  $urls = array_filter($urls);
+  return $urls;
+}
+
 /**
  * Build a list of routes with replacement parameters.
  */
-function routeList() {
+function routeListOld() {
   $urls = [];
 
   /** @var \Symfony\Component\Routing\Route $route */
