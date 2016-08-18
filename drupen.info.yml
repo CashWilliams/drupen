@@ -1,0 +1,6 @@
+name: DruPen
+description: Drupal penetration test helper module.
+package: Custom
+
+type: module
+core: 8.x
