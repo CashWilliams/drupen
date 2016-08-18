@@ -16,12 +16,12 @@ define("DRUPEN_STRING_SEPERATOR", "~~~");
  * Implementation of hook_drush_help().
  */
 function drupen_drush_help($section) {
-	switch ($section) {
-		case 'meta:drupen:title':
-			return dt('Drupen');
+  switch ($section) {
+    case 'meta:drupen:title':
+      return dt('Drupen');
     case 'meta:drupen:summary':
       return dt('Drupal Penetration test helper.');
-	}
+  }
 }
 
 /**
