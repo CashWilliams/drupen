@@ -8,7 +8,6 @@
 use Drush\Log\LogLevel;
 use GuzzleHttp\TransferStats;
 use GuzzleHttp\Cookie\CookieJar;
-use GuzzleHttp\Client;
 
 define("DRUPEN_STRING_SEPERATOR", "~~~");
 
@@ -130,7 +129,8 @@ function drush_drupen_route_test() {
  */
 function drush_drupen_session_cookie($username = '', $password = '') {
   $url = renderLink('user.login');
-  $client = new Client();
+  /** @var \GuzzleHttp\Client $client */
+  $client = \Drupal::service('http_client');
   $jar = new CookieJar;
 
   $client->request('POST', $url,
