@@ -14,6 +14,7 @@ class Views implements RouteHandlerInterface {
 
   public function applies(Route $route) {
     return FALSE;
+    // check $route->getDefaults()['view_id']
   }
 
   public function getUrls(RouteCollection $collection) {
