@@ -3,6 +3,19 @@
 DruPen is a helper module that provides a few Drush commands which are
 helpful when auditing the security of a Drupal 8 site.
 
+## Installation
+
+Place the `drupen` folder in your site's modules directory and enable
+the module.
+
+Currently the module only provides a few Drush commands, however more
+interaction with Drupal is planned (hence it is a module and not just 
+a Drush command).
+
+## Requirements
+
+DruPen requires PHP 7+ and Drupal 8.
+
 ## Commands
 
 ### drush route-list
