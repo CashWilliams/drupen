@@ -58,10 +58,12 @@ used to generate the cookie string.
 #### Examples
 
 List routes with 500 response code as an anonymous user.
+
 `drush route-test --response-code=500`
 
 List routes with 200 response code, with load times, as an authenticated
 user.
+
 `drush route-test --response-code=200 --profile --cookie="SESSe7c1f93bf5adaa9459634b1ab92db72d=JPNlqdkf9wT6PIIHu4bIRCH1EJua5vwKyaUUNQOJZvM; expires=Sat, 10-Sep-2016 07:15:28 GMT; Max-Age=2000000; path=/; domain=.example.dev; HttpOnly"`
 
 ### drush session-cookie
@@ -79,6 +81,8 @@ Output Set-Cookie header from standard Drupal authentication request.
 `password` : Password use for login.
 
 #### Example
+
+Create a session as `admin` user and display the cookie string. 
 
 `drush session-cookie admin password`
 
