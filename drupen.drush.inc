@@ -8,6 +8,8 @@
 use Drush\Log\LogLevel;
 use GuzzleHttp\TransferStats;
 use GuzzleHttp\Cookie\CookieJar;
+use Symfony\Component\Routing\RouteCollection;
+
 
 define("DRUPEN_STRING_SEPERATOR", "~~~");
 
@@ -158,95 +160,27 @@ function drush_drupen_session_cookie($username = '', $password = '') {
  * Build a list of routes with replacement parameters.
  */
 function routeList() {
+  $route_handlers = \Drupal::service('drupen.route.handler.manager')->getHandlers();
+  $collections = [];
   $urls = [];
 
   /** @var \Symfony\Component\Routing\Route $route */
   foreach (\Drupal::service('router.route_provider')->getAllRoutes() as $route_name => $route) {
-
-    // Find parameters in route path.
-    preg_match_all('|\{\w+\}|', $route->getPath(), $path_parameters, PREG_PATTERN_ORDER);
-    $path_parameters = $path_parameters[0];
-
-    // Ignore routes provided by Views if it has arguments.
-    if (!empty($route->getDefaults()['view_id']) && count($path_parameters)) {
-      if (drush_get_context('DRUSH_VERBOSE')) {
-        drush_log(dt('Skipping @route: Provided by Views.', ['@route' => $route_name]), LogLevel::WARNING);
-      }
-      continue;
-    }
-
-    // Add routes with no parameters.
-    if (!count($path_parameters)) {
-      // Special cases paths
-      switch ($route->getPath()) {
-        case '/<current>':
-        case '/':
-        case '/user/logout':
-        case '/autologout_ahah_logout':
-          if (drush_get_context('DRUSH_VERBOSE')) {
-            drush_log(dt('Skipping @route: Special case route.', ['@route' => $route_name]), LogLevel::WARNING);
-          }
-          break;
-        default:
-          $urls[] = renderLink($route_name);
-          break;
-      }
-      continue;
-    }
-
-    // Lookup valid replacements for parameters.
-    if (isset($route->getOptions()['parameters']) && count($route->getOptions()['parameters'])) {
-      $replacements = [];
-      foreach ($route->getOptions()['parameters'] as $key => $param) {
-        $type = $param['type'];
-
-        // For now, only deal with entity parameters.
-        if (substr($type, 0, 7) != 'entity:') {
-          if (drush_get_context('DRUSH_VERBOSE')) {
-            drush_log(dt('Skipping @route: Non-entity based parameters.', ['@route' => $route_name]), LogLevel::WARNING);
-          }
-          continue;
+    /** @var \Drupal\drupen\RouteHandler\RouteHandlerInterface $route_handler */
+    foreach ($route_handlers as $handler_name => $route_handler) {
+      if ($route_handler->applies($route)) {
+        if (empty($collections[$handler_name])) {
+          $collections[$handler_name] = new RouteCollection();
         }
-
-        list(, $entity_type) = explode(':', $type);
-
-        // Skip non-simple entity types.
-        if ($entity_type[0]=='{') {
-          if (drush_get_context('DRUSH_VERBOSE')) {
-            drush_log(dt('Skipping @route: Non-simple entity parameter.', ['@route' => $route_name]), LogLevel::WARNING);
-          }
-          continue;
-        }
-
-        // Load all entities of a given type.
-        $replacements[$key] = array_keys(\Drupal::entityTypeManager()
-          ->getStorage($entity_type)
-          ->loadMultiple());
-      }
-
-      // Ensure replacement options matches number of path parameters.
-      if (count($replacements) == count($path_parameters)) {
-        $results = [];
-        generatePermutations(DRUPEN_STRING_SEPERATOR, $results, ...array_values($replacements));
-        $keys = array_keys($replacements);
-        foreach($results as $result) {
-          $result = explode(DRUPEN_STRING_SEPERATOR, $result);
-          if (count($keys) == count($result)) {
-            $urls[] = renderLink($route_name, array_combine($keys, $result));
-          }
-        }
-      }
-      else {
-        if (drush_get_context('DRUSH_VERBOSE')) {
-          drush_log(dt('Skipping @route: Could not find replacement for all parameters.', ['@route' => $route_name]), LogLevel::WARNING);
-        }
+        $collections[$handler_name]->add($route_name, $route);
+        break;
       }
     }
-    else {
-      if (drush_get_context('DRUSH_VERBOSE')) {
-        drush_log(dt('Skipping @route: Free text parameters.', ['@route' => $route_name]), LogLevel::WARNING);
-      }
-    }
+  }
+
+  foreach ($collections as $handler_name => $collection) {
+    $route_handler = $route_handlers[$handler_name];
+    $urls = array_merge($route_handler->getUrls($collection), $urls);
   }
 
   $urls = array_filter($urls);
@@ -303,7 +237,7 @@ function loadURL($url) {
         $code = $stats->getResponse()->getStatusCode();
         $time = $stats->getTransferTime();
         $url = $stats->getEffectiveUri();
-        if (isset($stats->getResponse()->getHeader('X-Drupal-Cache')[0])) {
+        if (null !== $stats->getResponse()->getHeader('X-Drupal-Cache')[0]) {
           $cache = $stats->getResponse()->getHeader('X-Drupal-Cache')[0];
         }
         else {
