@@ -1,4 +1,8 @@
 services:
+  drupen.route.handler.manager:
+    class: Drupal\drupen\RouteHandler\Manager
+    tags:
+      - { name: service_collector, tag: drupen_route_handler, call: addHandler }
   drupen.black.list.handler:
     class: '\Drupal\drupen\RouteHandler\BlackList'
     tags:
@@ -15,9 +19,13 @@ services:
       - { name: drupen_route_handler, priority: 300 }
   drupen.default.handler:
     class: '\Drupal\drupen\RouteHandler\DefaultHandler'
-    arguments: ['@url_generator', '@service_container']
+    arguments: ['@url_generator', '@drupen.param.handler.manager']
     tags:
       - { name: drupen_route_handler }
+  drupen.param.handler.manager:
+    class: Drupal\drupen\ParamHandler\Manager
+    tags:
+      - { name: service_collector, tag: drupen_parameter_handler, call: addHandler }
   drupen.entity.param:
     class: '\Drupal\drupen\ParamHandler\Entity'
     arguments: ['@entity_type.manager']

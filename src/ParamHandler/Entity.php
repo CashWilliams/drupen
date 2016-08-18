@@ -21,7 +21,7 @@ class Entity implements ParameterHandlerInterface {
   }
 
   public function applies(string $type) : bool {
-    return substr($type, 0, 7) == 'entity:' && $type[8] != '{';
+    return substr($type, 0, 7) == 'entity:' && $type[7] != '{';
   }
 
   public function getParameters(string $type) : array {

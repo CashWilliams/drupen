@@ -8,9 +8,8 @@
 namespace Drupal\drupen\RouteHandler;
 
 use Drupal\Core\Routing\UrlGeneratorInterface;
+use Drupal\drupen\ParamHandler\Manager as ParamManager;
 use Drupal\drupen\ParamHandler\ParameterHandlerInterface;
-use Symfony\Component\DependencyInjection\ContainerInterface;
-use Symfony\Component\DependencyInjection\Reference;
 use Symfony\Component\Routing\Route;
 use Symfony\Component\Routing\RouteCollection;
 
@@ -19,18 +18,16 @@ class DefaultHandler implements RouteHandlerInterface {
   /**
    * @var \Drupal\drupen\ParamHandler\ParameterHandlerInterface[]
    */
-  protected $param_handlers;
+  protected $paramHandler;
 
   /**
    * @var \Drupal\Core\Routing\UrlGeneratorInterface
    */
   protected $generator;
 
-  public function __construct(UrlGeneratorInterface $generator, ContainerInterface $container) {
+  public function __construct(UrlGeneratorInterface $generator, ParamManager $manager) {
     $this->generator = $generator;
-    foreach ($container->findTaggedServiceIds('drupen_parameter_handler') as $id => $attributes) {
-      $this->param_handlers[$id] = new Reference($id);
-    }
+    $this->paramHandler = $manager;
   }
 
   public function applies(Route $route) {
@@ -43,15 +40,21 @@ class DefaultHandler implements RouteHandlerInterface {
       if (isset($route->getOptions()['parameters']) && count($route->getOptions()['parameters'])) {
         $replacements = [];
         foreach ($route->getOptions()['parameters'] as $key => $param) {
-          $replacements[$key] = $this->getParameters();
+          $params = $this->getParameters($param['type']);
+          if (!$params) {
+            continue;
+          }
+          $replacements[$key] = $params;
         }
         $results = [];
-        generatePermutations(DRUPEN_STRING_SEPERATOR, $results, ...array_values($replacements));
-        $keys = array_keys($replacements);
-        foreach($results as $result) {
-          $result = explode(DRUPEN_STRING_SEPERATOR, $result);
-          if (count($keys) == count($result)) {
-            $urls[] = renderLink($route_name, array_combine($keys, $result));
+        if ($replacements) {
+          generatePermutations(DRUPEN_STRING_SEPERATOR, $results, ...array_values($replacements));
+          $keys = array_keys($replacements);
+          foreach ($results as $result) {
+            $result = explode(DRUPEN_STRING_SEPERATOR, $result);
+            if (count($keys) == count($result)) {
+              $urls[] = renderLink($route_name, array_combine($keys, $result));
+            }
           }
         }
       }
@@ -59,8 +62,8 @@ class DefaultHandler implements RouteHandlerInterface {
     return $urls;
   }
 
-  protected function getParameterHandler(string $type) : ParameterHandlerInterface {
-    foreach ($this->param_handlers as $handler) {
+  protected function getParameterHandler(string $type) {
+    foreach ($this->paramHandler->getHandlers() as $handler) {
       if ($handler->applies($type)) {
         return $handler;
       }
@@ -69,7 +72,10 @@ class DefaultHandler implements RouteHandlerInterface {
 
   protected function getParameters(string $type) : array {
     $handler = $this->getParameterHandler($type);
-    return $handler->getParameters($type);
+    if ($handler) {
+      return $handler->getParameters($type);
+    }
+    return [];
   }
 
 }

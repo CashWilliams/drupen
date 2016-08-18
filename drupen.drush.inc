@@ -157,11 +157,8 @@ function drush_drupen_session_cookie($username = '', $password = '') {
 }
 
 function routeList() {
-  $route_handlers = [];
+  $route_handlers = \Drupal::service('drupen.route.handler.manager')->getHandlers();
   $collections = [];
-  foreach (\Drupal::getContainer()->findTaggedServiceIds('drupen_route_handler') as $id => $attributes) {
-    $route_handlers[$id] = new Reference($id);
-  }
   $urls = [];
 
   /** @var \Symfony\Component\Routing\Route $route */
@@ -335,7 +332,7 @@ function loadURL($url) {
         $code = $stats->getResponse()->getStatusCode();
         $time = $stats->getTransferTime();
         $url = $stats->getEffectiveUri();
-        if (isset($stats->getResponse()->getHeader('X-Drupal-Cache')[0])) {
+        if (null !== $stats->getResponse()->getHeader('X-Drupal-Cache')[0]) {
           $cache = $stats->getResponse()->getHeader('X-Drupal-Cache')[0];
         }
         else {
