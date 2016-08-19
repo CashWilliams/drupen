@@ -184,6 +184,7 @@ function routeList() {
   }
 
   $urls = array_filter($urls);
+  $urls = array_unique($urls);
   return $urls;
 }
 
