@@ -60,6 +60,7 @@ class Views implements RouteHandlerInterface {
         foreach ($query->execute() as $result) {
           $replacements["arg_$arg_count"][] = $result->$field;
         }
+        $arg_count++;
       }
       $results = [];
       if ($replacements) {
