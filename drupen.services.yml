@@ -15,7 +15,6 @@ services:
   drupen.views.handler:
     class: '\Drupal\drupen\RouteHandler\Views'
     arguments: ['@entity_type.manager', '@database']
-    arguments: ['@url_generator']
     tags:
       - { name: drupen_route_handler, priority: 300 }
   drupen.default.handler:
