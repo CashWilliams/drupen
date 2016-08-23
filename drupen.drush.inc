@@ -8,6 +8,7 @@
 use Drush\Log\LogLevel;
 use GuzzleHttp\TransferStats;
 use GuzzleHttp\Cookie\CookieJar;
+use Symfony\Component\Routing\Exception\RouteNotFoundException;
 use Symfony\Component\Routing\RouteCollection;
 
 
@@ -32,11 +33,15 @@ function drupen_drush_command() {
   $items['route-list'] = array(
     'description' => 'List all route entries as valid urls.',
     'bootstrap' => DRUSH_BOOTSTRAP_DRUPAL_FULL,
+    'options' => array(
+      'route-name' => 'Filter by a single route.',
+    ),
   );
   $items['route-test'] = array(
     'description' => 'Test access to all route entries.',
     'bootstrap' => DRUSH_BOOTSTRAP_DRUPAL_FULL,
     'options' => array(
+      'route-name' => 'Filter by a single route.',
       'response-code' => 'Filter routes that respond with the provided HTTP code.',
       'response-cache' => 'Filter routes that have a X-Drupal-Cache value.',
       'profile' => 'Display response timing information.',
@@ -80,7 +85,7 @@ function drush_drupen_pre_route_list($profile = NULL) {
  */
 function drush_drupen_route_list() {
   drush_print(dt('Listing all routes.'));
-  $urls = routeList();
+  $urls = routeList(drush_get_option('route-name', FALSE));
   foreach ($urls as $url) {
     drush_print($url);
   }
@@ -120,7 +125,7 @@ function drush_drupen_route_test() {
     drush_print(dt('Testing all routes.'));
   }
 
-  $urls = routeList();
+  $urls = routeList(drush_get_option('route-name', FALSE));
   foreach ($urls as $url) {
     loadURL($url);
   }
@@ -159,13 +164,28 @@ function drush_drupen_session_cookie($username = '', $password = '') {
 /**
  * Build a list of routes with replacement parameters.
  */
-function routeList() {
+function routeList($route_name = FALSE) {
   $route_handlers = \Drupal::service('drupen.route.handler.manager')->getHandlers();
   $collections = [];
   $urls = [];
+  $routes = [];
 
+  /** @var \Drupal\Core\Routing\RouteProvider $route_provider */
+  $route_provider = \Drupal::service('router.route_provider');
+  if ($route_name) {
+    try {
+      $routes[$route_name] = $route_provider->getRouteByName($route_name);
+    }
+    catch (RouteNotFoundException $e) {
+      drush_set_error('route_mismatch', $e->getMessage());
+      return [];
+    }
+  }
+  else {
+    $routes = $route_provider->getAllRoutes();
+  }
   /** @var \Symfony\Component\Routing\Route $route */
-  foreach (\Drupal::service('router.route_provider')->getAllRoutes() as $route_name => $route) {
+  foreach ($routes as $route_name => $route) {
     /** @var \Drupal\drupen\RouteHandler\RouteHandlerInterface $route_handler */
     foreach ($route_handlers as $handler_name => $route_handler) {
       if ($route_handler->applies($route)) {
