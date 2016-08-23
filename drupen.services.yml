@@ -31,3 +31,8 @@ services:
     arguments: ['@entity_type.manager']
     tags:
       - { name: drupen_parameter_handler }
+  drupen.language.param:
+    class: '\Drupal\drupen\ParamHandler\Language'
+    arguments: ['@language_manager']
+    tags:
+      - { name: drupen_parameter_handler }
