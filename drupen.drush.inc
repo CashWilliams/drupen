@@ -8,6 +8,7 @@
 use Drush\Log\LogLevel;
 use GuzzleHttp\TransferStats;
 use GuzzleHttp\Cookie\CookieJar;
+use Symfony\Component\Routing\Exception\RouteNotFoundException;
 use Symfony\Component\Routing\RouteCollection;
 
 
@@ -172,7 +173,13 @@ function routeList($route_name = FALSE) {
   /** @var \Drupal\Core\Routing\RouteProvider $route_provider */
   $route_provider = \Drupal::service('router.route_provider');
   if ($route_name) {
-    $routes[$route_name] = $route_provider->getRouteByName($route_name);
+    try {
+      $routes[$route_name] = $route_provider->getRouteByName($route_name);
+    }
+    catch (RouteNotFoundException $e) {
+      drush_set_error('route_mismatch', $e->getMessage());
+      return [];
+    }
   }
   else {
     $routes = $route_provider->getAllRoutes();
