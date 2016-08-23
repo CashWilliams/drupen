@@ -42,10 +42,17 @@ class DefaultHandler implements RouteHandlerInterface {
         foreach ($route->getOptions()['parameters'] as $key => $param) {
           $params = $this->getParameters($param['type']);
           if (!$params) {
-            continue;
+            break;
           }
           $replacements[$key] = $params;
         }
+
+        // Ensure the number of replacements is equal to the number of expected
+        // parameters.
+        if (count($replacements) != count($route->getOptions()['parameters'])) {
+          continue;
+        }
+
         $results = [];
         if ($replacements) {
           generatePermutations(DRUPEN_STRING_SEPERATOR, $results, ...array_values($replacements));
