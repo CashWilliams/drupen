@@ -14,7 +14,7 @@ a Drush command).
 
 ## Requirements
 
-DruPen requires PHP 7+ and Drupal 8.
+DruPen requires PHP 5.6+ and Drupal 8.
 
 ## Commands
 
