@@ -283,7 +283,7 @@ function loadURL($url) {
  * @param array $results
  * @param \array[] ...$arrays
  */
-function generatePermutations(string $separator, array &$results, array ...$arrays) {
+function generatePermutations($separator, array &$results, array ...$arrays) {
   $empty = empty($results);
   $array = array_shift($arrays);
   $new_results = [];

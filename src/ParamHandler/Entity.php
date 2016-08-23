@@ -20,11 +20,11 @@ class Entity implements ParameterHandlerInterface {
     $this->entityTypeManager = $entity_type_manager;
   }
 
-  public function applies(string $type) : bool {
+  public function applies($type) {
     return substr($type, 0, 7) == 'entity:' && $type[7] != '{';
   }
 
-  public function getParameters(string $type) : array {
+  public function getParameters($type) {
     list(, $entity_type) = explode(':', $type);
     // Load all entities of a given type.
     return array_keys($this->entityTypeManager->getStorage($entity_type)->loadMultiple());

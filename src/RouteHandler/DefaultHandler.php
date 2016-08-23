@@ -62,7 +62,7 @@ class DefaultHandler implements RouteHandlerInterface {
     return $urls;
   }
 
-  protected function getParameterHandler(string $type) {
+  protected function getParameterHandler($type) {
     foreach ($this->paramHandler->getHandlers() as $handler) {
       if ($handler->applies($type)) {
         return $handler;
@@ -70,7 +70,7 @@ class DefaultHandler implements RouteHandlerInterface {
     }
   }
 
-  protected function getParameters(string $type) : array {
+  protected function getParameters($type) {
     $handler = $this->getParameterHandler($type);
     if ($handler) {
       return $handler->getParameters($type);

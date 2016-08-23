@@ -9,7 +9,7 @@ namespace Drupal\drupen\ParamHandler;
 
 interface ParameterHandlerInterface {
 
-  public function applies(string $type) : bool ;
+  public function applies($type);
 
-  public function getParameters(string $type) : array ;
+  public function getParameters($type);
 }
