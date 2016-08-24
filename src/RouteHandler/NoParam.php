@@ -36,11 +36,9 @@ class NoParam implements RouteHandlerInterface {
    * {@inheritdoc}
    */
   public function getUrls(RouteCollection $collection) {
-    $urls = [];
     foreach ($collection as $name => $route) {
-      $urls[] = $this->generator->generateFromRoute($name, [], ['absolute' => TRUE]);
+      yield $this->generator->generateFromRoute($name, [], ['absolute' => TRUE]);
     }
-    return $urls;
   }
 
 }

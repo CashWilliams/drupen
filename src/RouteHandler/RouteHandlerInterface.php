@@ -27,7 +27,7 @@ interface RouteHandlerInterface {
    *
    * @param \Symfony\Component\Routing\RouteCollection $collection
    *
-   * @return \Drupal\Core\GeneratedUrl[]
+   * @return \Generator
    */
   public function getUrls(RouteCollection $collection);
 

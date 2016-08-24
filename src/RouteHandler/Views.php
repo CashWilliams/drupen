@@ -35,7 +35,6 @@ class Views implements RouteHandlerInterface {
   }
 
   public function getUrls(RouteCollection $collection) {
-    $urls = [];
     $views_storage = $this->entityTypeManager->getStorage('view');
     /**
      * @var string $route_name
@@ -69,12 +68,10 @@ class Views implements RouteHandlerInterface {
         foreach ($results as $result) {
           $result = explode(DRUPEN_STRING_SEPERATOR, $result);
           if (count($keys) == count($result)) {
-            $urls[] = renderLink($route_name, array_combine($keys, $result));
+            yield renderLink($route_name, array_combine($keys, $result));
           }
         }
       }
     }
-    return $urls;
   }
-
 }

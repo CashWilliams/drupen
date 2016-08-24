@@ -35,7 +35,6 @@ class DefaultHandler implements RouteHandlerInterface {
   }
 
   public function getUrls(RouteCollection $collection) {
-    $urls = [];
     foreach ($collection as $route_name => $route) {
       if (isset($route->getOptions()['parameters']) && count($route->getOptions()['parameters'])) {
         $replacements = [];
@@ -57,16 +56,16 @@ class DefaultHandler implements RouteHandlerInterface {
         if ($replacements) {
           generatePermutations(DRUPEN_STRING_SEPERATOR, $results, ...array_values($replacements));
           $keys = array_keys($replacements);
+
           foreach ($results as $result) {
             $result = explode(DRUPEN_STRING_SEPERATOR, $result);
             if (count($keys) == count($result)) {
-              $urls[] = renderLink($route_name, array_combine($keys, $result));
+              yield renderLink($route_name, array_combine($keys, $result));
             }
           }
         }
       }
     }
-    return $urls;
   }
 
   protected function getParameterHandler($type) {

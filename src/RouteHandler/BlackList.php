@@ -29,7 +29,7 @@ class BlackList implements RouteHandlerInterface {
    * {@inheritdoc}
    */
   public function getUrls(RouteCollection $collection) {
-    return [];
+    yield;
   }
 
 }

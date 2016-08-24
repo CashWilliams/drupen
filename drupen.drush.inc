@@ -85,8 +85,7 @@ function drush_drupen_pre_route_list($profile = NULL) {
  */
 function drush_drupen_route_list() {
   drush_print(dt('Listing all routes.'));
-  $urls = routeList(drush_get_option('route-name', FALSE));
-  foreach ($urls as $url) {
+  foreach (routeList(drush_get_option('route-name', FALSE)) as $url) {
     drush_print($url);
   }
 }
@@ -125,8 +124,7 @@ function drush_drupen_route_test() {
     drush_print(dt('Testing all routes.'));
   }
 
-  $urls = routeList(drush_get_option('route-name', FALSE));
-  foreach ($urls as $url) {
+  foreach (routeList(drush_get_option('route-name', FALSE)) as $url) {
     loadURL($url);
   }
 }
@@ -163,11 +161,12 @@ function drush_drupen_session_cookie($username = '', $password = '') {
 
 /**
  * Build a list of routes with replacement parameters.
+ *
+ * @return \Generator
  */
 function routeList($route_name = FALSE) {
   $route_handlers = \Drupal::service('drupen.route.handler.manager')->getHandlers();
   $collections = [];
-  $urls = [];
   $routes = [];
 
   /** @var \Drupal\Core\Routing\RouteProvider $route_provider */
@@ -178,12 +177,13 @@ function routeList($route_name = FALSE) {
     }
     catch (RouteNotFoundException $e) {
       drush_set_error('route_mismatch', $e->getMessage());
-      return [];
+      yield;
     }
   }
   else {
     $routes = $route_provider->getAllRoutes();
   }
+
   /** @var \Symfony\Component\Routing\Route $route */
   foreach ($routes as $route_name => $route) {
     /** @var \Drupal\drupen\RouteHandler\RouteHandlerInterface $route_handler */
@@ -200,12 +200,13 @@ function routeList($route_name = FALSE) {
 
   foreach ($collections as $handler_name => $collection) {
     $route_handler = $route_handlers[$handler_name];
-    $urls = array_merge($route_handler->getUrls($collection), $urls);
+    foreach ($route_handler->getUrls($collection) as $url) {
+      if (!$url) {
+        continue;
+      }
+      yield $url;
+    }
   }
-
-  $urls = array_filter($urls);
-  $urls = array_unique($urls);
-  return $urls;
 }
 
 // Helper function to render an absolute link.
