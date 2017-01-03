@@ -45,7 +45,9 @@ function drupen_drush_command() {
       'response-code' => 'Filter routes that respond with the provided HTTP code.',
       'response-cache' => 'Filter routes that have a X-Drupal-Cache value.',
       'profile' => 'Display response timing information.',
-      'cookie' => 'Provide cookies to send with requests (for authentication).'
+      'cookie' => 'Provide cookies to send with requests (for authentication).',
+      'verify-ssl' => 'Verify the SSL certificate for responses.',
+      'follow-redirects' => 'Follow HTTP redirects.',
     ),
   );
   $items['session-cookie'] = array(
@@ -236,6 +238,7 @@ function loadURL($url) {
 
   /** @var \GuzzleHttp\Client $client */
   $client = \Drupal::service('http_client');
+
   // Use a specific cookie jar
   $jar = new CookieJar;
 
@@ -247,7 +250,6 @@ function loadURL($url) {
      */
     $jar->setCookie($newCookie);
   }
-
 
   $client->request('GET', $url, [
     'on_stats' => function (TransferStats $stats) {
@@ -294,6 +296,8 @@ function loadURL($url) {
     },
     'http_errors' => false,
     'cookies' => $jar,
+    'curl' => [CURLOPT_SSL_VERIFYPEER => drush_get_option('verify-ssl', FALSE)],
+    'allow_redirects' => drush_get_option('follow-redirects', FALSE),
   ]);
 }
 
